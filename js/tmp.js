@@ -28,15 +28,15 @@ const extractProgramNameLabel = (programName) => {
 }
 
 // wallet - key generation
-// const keyPair = sign.keyPair()
-// const pvtKey  = keyPair.secretKey
-// const pubKey  = keyPair.publicKey
-// const address = libra.pubkeyToAddress(keyPair.publicKey)
-//
-// console.log("private key:", intArrToStr(pvtKey)) // SECRET! don't console log on production
-// console.log("pub key:", intArrToStr(pubKey))
-// console.log("address:", intArrToStr(address))
-// const msg = Buffer.from("test")
+const keyPair = sign.keyPair()
+const pvtKey  = keyPair.secretKey
+const pubKey  = keyPair.publicKey
+const address = libra.pubkeyToAddress(keyPair.publicKey)
+
+console.log("private key:", intArrToStr(pvtKey)) // SECRET! don't console log on production
+console.log("pub key:", intArrToStr(pubKey))
+console.log("address:", intArrToStr(address))
+const msg = Buffer.from("test")
 
 // message signing and verification
 // const signedMsg = sign(msg, keyPair.secretKey)
@@ -62,6 +62,8 @@ const logChainInfo = async () => {
 }
 
 ;(async () => {
+  return
+
   // chain info
   await logChainInfo()
   console.log("\n")
@@ -123,15 +125,45 @@ const logChainInfo = async () => {
   console.log("  - balance: ", balance)
   console.log("  - events: { sent: ", sentEvents, ", received: ", receivedEvents, " }")
 
+})()
 
+;(async () => {
+  let address2 = "d43e0b6386a12ddee8188468a803a419de11e7e706be1489fa240c2e60f8ef90"
+  address2 = strToIntArr(address2)
 
+  const senderAddr = address
+  const senderPrivateKey = pvtKey
+  const recvAddr = address2
+  const senderSeq = 107843 // sequence number (sender account)
+  const amountMicro = 2 * 1000000 // TODO: figure out the gas amount details
+  const maxGasAmount = 140000
+  const gasUnitPrice = 0
+  let expiration = new Date(new Date().getTime() + 3600)
+  expiration = new Number(expiration)
+  expiration = parseInt(expiration)
+  const expirationTimestamp = expiration
 
+  console.log("submitP2PTransaction ----")
+  console.log( "senderAddr:", senderAddr, "senderPrivateKey:", senderPrivateKey, "recvAddr:", recvAddr, "senderSeq:", senderSeq, "amountMicro:", amountMicro, "maxGasAmount:", maxGasAmount, "gasUnitPrice:", gasUnitPrice, "expiration:", expiration )
+
+  const txData = { senderAddr, senderPrivateKey, recvAddr, senderSeq, amountMicro, maxGasAmount, gasUnitPrice, expirationTimestamp }
+
+  let tx
+  try {
+    tx = await lib.submitP2PTransaction(txData)
+  } catch (err) {
+    console.error("Error creating and pushing transaction:")
+    console.error(err)
+  }
+
+  console.log("TX:", tx)
+
+  // lib.submitP2PTransaction
 })()
 
 
-
 // notes:
-// 
+//
 // ### Client.submitP2PTransaction(rawTxn)
 //
 // Arguments:
