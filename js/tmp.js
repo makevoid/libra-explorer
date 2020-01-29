@@ -148,12 +148,22 @@ const logChainInfo = async () => {
 
   const txData = { senderAddr, senderPrivateKey, recvAddr, senderSeq, amountMicro, maxGasAmount, gasUnitPrice, expirationTimestamp }
 
-  let tx
+  let txSubmission
   try {
-    tx = await lib.submitP2PTransaction(txData)
+    txSubmission = await lib.submitP2PTransaction(txData)
   } catch (err) {
     console.error("Error creating and pushing transaction:")
     console.error(err)
+    process.exit()
+  }
+
+  let tx
+  try {
+    tx = await lib.pollSequenceUntil(senderAddr, txSubmission, parseInt(Date.now() / 1000) + 60)
+  } catch (err) {
+    console.error("Error polling for tx status")
+    console.error(err)
+    process.exit()
   }
 
   console.log("TX:", tx)
