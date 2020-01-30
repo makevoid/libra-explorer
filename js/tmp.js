@@ -2,18 +2,10 @@ const { sign } = require("tweetnacl")
 const { libra } = require("gopherjs-libra")
 
 const intArrToStr = (uintArray) => (
-  // node
-  Buffer.from(uintArray).toString('hex')
-
-  // browser
-  // uintArray ? uintArray.reduce((str, byte) => str + byte.toString(16).padStart(2, '0'), '') : 'N/A';
+  uintArray.reduce((str, byte) => str + byte.toString(16).padStart(2, '0'), '')
 )
 
 const strToIntArr = hexString => (
-  // node
-  // ?
-
-  // browser
   new Uint8Array(hexString.match(/.{1,2}/g).map(byte => parseInt(byte, 16)))
 )
 
@@ -28,15 +20,15 @@ const extractProgramNameLabel = (programName) => {
 }
 
 // wallet - key generation
-const keyPair = sign.keyPair()
-const pvtKey  = keyPair.secretKey
-const pubKey  = keyPair.publicKey
-const address = libra.pubkeyToAddress(keyPair.publicKey)
-
-console.log("private key:", intArrToStr(pvtKey)) // SECRET! don't console log on production
-console.log("pub key:", intArrToStr(pubKey))
-console.log("address:", intArrToStr(address))
-const msg = Buffer.from("test")
+// const keyPair = sign.keyPair()
+// const pvtKey  = keyPair.secretKey
+// const pubKey  = keyPair.publicKey
+// const address = libra.pubkeyToAddress(keyPair.publicKey)
+//
+// console.log("private key:", intArrToStr(pvtKey)) // SECRET! don't console log on production
+// console.log("pub key:", intArrToStr(pubKey))
+// console.log("address:", intArrToStr(address))
+// const msg = Buffer.from("test")
 
 // message signing and verification
 // const signedMsg = sign(msg, keyPair.secretKey)
@@ -101,9 +93,12 @@ const logChainInfo = async () => {
   })
   console.log("\n")
 
+  // var senderAddr = fromHexString("e2c7c6c1b3eac68f796684a728f88561a8407079ec365f844c0a581c5f252637"),
+  //     priKey = fromHexString("d2468d84b6318ca1993542563007eef4e2cb1f636986fdad40f24a286328e5421cb3b9a4f6c3431ac76d96a28d767e3c647f1e19e1f04fa85fa177f866db5d1f"),
+  //     recvAddr = fromHexString("e2c7c6c1b3eac68f796684a728f88561a8407079ec365f844c0a581c5f252637");
 
   // query account
-  let address = "d43e0b6386a12ddee8188468a803a419de11e7e706be1489fa240c2e60f8ef90"
+  let address = "6200650f43fd70774d6d80f6f4d516845e2b349192a241058b9dcc9c23d4db00"
   address = strToIntArr(address)
 
   //
@@ -131,20 +126,30 @@ const logChainInfo = async () => {
   let address2 = "d43e0b6386a12ddee8188468a803a419de11e7e706be1489fa240c2e60f8ef90"
   address2 = strToIntArr(address2)
 
+  let address = "e2c7c6c1b3eac68f796684a728f88561a8407079ec365f844c0a581c5f252637"
+  address = strToIntArr(address)
+
+  let senderSeq
+  try {
+    senderSeq = await lib.queryAccountSequenceNumber(address)
+  } catch (err) {
+    console.error("Error querying for address sequence number - address:", intArrToStr(address))
+    console.error(err)
+    process.exit()
+  }
+  // const senderSeq = 1 // sequence number (sender account)
+
   const senderAddr = address
-  const senderPrivateKey = pvtKey
+  // const senderPrivateKey = pvtKey
+  const senderPrivateKey = strToIntArr("d2468d84b6318ca1993542563007eef4e2cb1f636986fdad40f24a286328e5421cb3b9a4f6c3431ac76d96a28d767e3c647f1e19e1f04fa85fa177f866db5d1f")
   const recvAddr = address2
-  const senderSeq = 107843 // sequence number (sender account)
   const amountMicro = 2 * 1000000 // TODO: figure out the gas amount details
   const maxGasAmount = 140000
   const gasUnitPrice = 0
-  let expiration = new Date(new Date().getTime() + 3600)
-  expiration = new Number(expiration)
-  expiration = parseInt(expiration)
-  const expirationTimestamp = expiration
+  const expirationTimestamp = parseInt(Date.now() / 1000) + 60
 
   console.log("submitP2PTransaction ----")
-  console.log( "senderAddr:", senderAddr, "senderPrivateKey:", senderPrivateKey, "recvAddr:", recvAddr, "senderSeq:", senderSeq, "amountMicro:", amountMicro, "maxGasAmount:", maxGasAmount, "gasUnitPrice:", gasUnitPrice, "expiration:", expiration )
+  console.log( "senderAddr:", senderAddr, "senderPrivateKey:", senderPrivateKey, "recvAddr:", recvAddr, "senderSeq:", senderSeq, "amountMicro:", amountMicro, "maxGasAmount:", maxGasAmount, "gasUnitPrice:", gasUnitPrice, "expirationTimestamp:", expirationTimestamp )
 
   const txData = { senderAddr, senderPrivateKey, recvAddr, senderSeq, amountMicro, maxGasAmount, gasUnitPrice, expirationTimestamp }
 
@@ -157,16 +162,16 @@ const logChainInfo = async () => {
     process.exit()
   }
 
-  let tx
   try {
-    tx = await lib.pollSequenceUntil(senderAddr, txSubmission, parseInt(Date.now() / 1000) + 60)
+    await lib.pollSequenceUntil(senderAddr, txSubmission, parseInt(Date.now() / 1000) + 60)
   } catch (err) {
     console.error("Error polling for tx status")
     console.error(err)
     process.exit()
   }
 
-  console.log("TX:", tx)
+  console.log("TX done!")
+
 
   // lib.submitP2PTransaction
 })()

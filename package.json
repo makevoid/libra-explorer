@@ -1,6 +1,6 @@
 {
   "dependencies": {
-    "gopherjs-libra": "^0.1.5",
-    "tweetnacl": "^1.0.1"
+    "gopherjs-libra": "^0.1.9",
+    "tweetnacl": "^1.0.2"
   }
 }
