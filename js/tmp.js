@@ -37,8 +37,10 @@ const extractProgramNameLabel = (programName) => {
 // console.log("msg. signature verified:", !!verified)
 
 
-const defaultServer = "http://hk2.wutj.info:38080"
-const lib = libra.client(defaultServer, libra.trustedPeersFile)
+const waypoint = "0:bf7e1eef81af68cc6b4801c3739da6029c778a72e67118a8adf0dd759f188908"
+
+const defaultHost = "http://hk2.wutj.info:38080"
+const lib = libra.client(defaultHost, waypoint)
 
 const txRangeStart = 10701329
 
